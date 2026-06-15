@@ -82,7 +82,7 @@
       }
       if (ids.has(item.id)) throw new Error(`ID duplicado: ${item.id}`);
       ids.add(item.id);
-      if (!["hombre", "mujer"].includes(item.genero)) throw new Error(`Género no permitido en ${item.id}.`);
+      if (!["hombre", "mujer", "otro"].includes(item.genero)) throw new Error(`Género no permitido en ${item.id}.`);
     }
   }
 

@@ -21,7 +21,7 @@ npx serve .
 
 ## Cargar datos autorizados
 
-1. Copia todas las imágenes dentro de `images/`, sin subcarpetas.
+1. Copia las imágenes dentro de `images/`. El catálogo importado usa subcarpetas como `hombre/`, `mujer/` y `otro/`.
 2. Edita `data/atuendos.json`.
 3. Cada elemento debe incluir:
 
@@ -32,14 +32,14 @@ npx serve .
   "genero": "hombre",
   "origen": "Final Fantasy VII",
   "atuendo": "Atuendo principal",
-  "archivo": "cloud_strife__atuendo_principal.webp",
+  "archivo": "hombre/cloud_strife__atuendo_principal.webp",
   "pagina_personaje": "URL autorizada",
   "fuente_imagen": "URL autorizada",
   "licencia": "licencia verificada"
 }
 ```
 
-El archivo entregado no contiene registros de personajes porque no se obtuvo autorización para el rastreo automatizado de Fandom ni una licencia reutilizable individual para las imágenes.
+`genero` admite `hombre`, `mujer` u `otro`. `archivo` debe coincidir con una ruta existente dentro de `images/`.
 
 ## Modo local
 
@@ -88,7 +88,7 @@ La clave `release_code` no aparece en las lecturas públicas. Revisa periódicam
 - `storage.js`: adaptadores de persistencia desacoplados.
 - `config.js`: selección de modo y credenciales públicas.
 - `data/atuendos.json`: catálogo.
-- `images/`: copia plana de imágenes.
+- `images/`: imágenes organizadas por categoría cuando el catálogo lo requiera.
 
 ## Accesibilidad y responsive
 
