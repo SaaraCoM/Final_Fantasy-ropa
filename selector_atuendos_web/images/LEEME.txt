@@ -1,1 +1,0 @@
-Añade aquí únicamente imágenes autorizadas, con nombres planos coincidentes con data/atuendos.json.
