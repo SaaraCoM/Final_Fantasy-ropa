@@ -4,16 +4,26 @@
 create table if not exists public.outfit_reservations (
   outfit_id text primary key,
   alias text not null check (char_length(alias) between 1 and 60),
+  owner_token_hash text,
   reserved_at timestamptz not null default now()
 );
 
 alter table public.outfit_reservations drop column if exists release_code;
+alter table public.outfit_reservations add column if not exists owner_token_hash text;
+delete from public.outfit_reservations where owner_token_hash is null;
+alter table public.outfit_reservations alter column owner_token_hash set not null;
+alter table public.outfit_reservations drop constraint if exists outfit_reservations_owner_token_hash_check;
+alter table public.outfit_reservations
+  add constraint outfit_reservations_owner_token_hash_check
+  check (owner_token_hash ~ '^[a-f0-9]{64}$');
 
 alter table public.outfit_reservations enable row level security;
 revoke all on table public.outfit_reservations from anon, authenticated;
 
 drop function if exists public.reserve_outfit(text, text, text);
 drop function if exists public.release_outfit(text, text);
+drop function if exists public.reserve_outfit(text, text);
+drop function if exists public.release_outfit(text);
 
 create or replace function public.list_outfit_reservations()
 returns table (outfit_id text, alias text, reserved_at timestamptz)
@@ -29,7 +39,8 @@ $$;
 
 create or replace function public.reserve_outfit(
   p_outfit_id text,
-  p_alias text
+  p_alias text,
+  p_owner_token_hash text
 )
 returns table (reserved_at timestamptz)
 language plpgsql
@@ -45,16 +56,22 @@ begin
   if p_alias is null or char_length(trim(p_alias)) not between 1 and 60 then
     raise exception 'alias inválido';
   end if;
+  if p_owner_token_hash is null or lower(trim(p_owner_token_hash)) !~ '^[a-f0-9]{64}$' then
+    raise exception 'token de propietario inválido';
+  end if;
 
-  insert into public.outfit_reservations(outfit_id, alias)
-  values (trim(p_outfit_id), trim(p_alias))
+  insert into public.outfit_reservations(outfit_id, alias, owner_token_hash)
+  values (trim(p_outfit_id), trim(p_alias), lower(trim(p_owner_token_hash)))
   returning outfit_reservations.reserved_at into created_at;
 
   return query select created_at;
 end;
 $$;
 
-create or replace function public.release_outfit(p_outfit_id text)
+create or replace function public.release_outfit(
+  p_outfit_id text,
+  p_owner_token_hash text
+)
 returns boolean
 language plpgsql
 security definer
@@ -63,17 +80,22 @@ as $$
 declare
   deleted_count integer;
 begin
+  if p_owner_token_hash is null or lower(trim(p_owner_token_hash)) !~ '^[a-f0-9]{64}$' then
+    return false;
+  end if;
+
   delete from public.outfit_reservations
-  where outfit_id = trim(p_outfit_id);
+  where outfit_id = trim(p_outfit_id)
+    and owner_token_hash = lower(trim(p_owner_token_hash));
   get diagnostics deleted_count = row_count;
   return deleted_count = 1;
 end;
 $$;
 
 revoke all on function public.list_outfit_reservations() from public;
-revoke all on function public.reserve_outfit(text, text) from public;
-revoke all on function public.release_outfit(text) from public;
+revoke all on function public.reserve_outfit(text, text, text) from public;
+revoke all on function public.release_outfit(text, text) from public;
 
 grant execute on function public.list_outfit_reservations() to anon;
-grant execute on function public.reserve_outfit(text, text) to anon;
-grant execute on function public.release_outfit(text) to anon;
+grant execute on function public.reserve_outfit(text, text, text) to anon;
+grant execute on function public.release_outfit(text, text) to anon;

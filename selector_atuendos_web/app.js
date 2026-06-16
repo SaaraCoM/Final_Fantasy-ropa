@@ -162,6 +162,7 @@
 
   function createCard(item) {
     const occupied = state.reservations.has(item.id);
+    const ownedByThisDevice = occupied && state.adapter?.owns(item.id);
     const card = document.createElement("article");
     card.className = `card${occupied ? " is-occupied" : ""}`;
     card.dataset.outfitId = item.id;
@@ -192,14 +193,17 @@
     const outfit = document.createElement("p"); outfit.className = "card__outfit"; outfit.textContent = item.atuendo;
     const origin = document.createElement("p"); origin.className = "card__origin"; origin.textContent = item.origen;
     const footer = document.createElement("div"); footer.className = "card__footer";
-    const status = document.createElement("span"); status.className = "status"; status.textContent = occupied ? "Ocupado" : "Disponible";
+    const status = document.createElement("span");
+    status.className = "status";
+    status.textContent = occupied ? (ownedByThisDevice ? "Ocupado por ti" : "Ocupado") : "Disponible";
     footer.append(status);
     body.append(title, outfit, origin, footer);
 
     const button = document.createElement("button");
     button.type = "button";
     button.className = occupied ? "button button--ghost" : "button";
-    button.textContent = occupied ? "Desocupar" : "Seleccionar";
+    button.textContent = occupied ? (ownedByThisDevice ? "Desocupar" : "Ocupado") : "Seleccionar";
+    button.disabled = occupied && !ownedByThisDevice;
     button.addEventListener("click", () => occupied ? openRelease(item.id) : openReserve(item.id));
     body.append(button);
     card.append(media, body);
@@ -249,6 +253,10 @@
   }
 
   function openRelease(id) {
+    if (!state.adapter?.owns(id)) {
+      showToast("Solo el dispositivo que reservó este atuendo puede desocuparlo.");
+      return;
+    }
     state.selectedId = id;
     els.releaseError.textContent = "";
     els.releaseDialog.showModal();

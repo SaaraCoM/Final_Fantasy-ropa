@@ -2,6 +2,7 @@
   "use strict";
 
   const STORAGE_KEY = "ff-outfit-reservations-v1";
+  const OWNER_KEY = "ff-outfit-owner-tokens-v1";
 
   class StorageError extends Error {
     constructor(code, message) {
@@ -9,6 +10,18 @@
       this.name = "StorageError";
       this.code = code;
     }
+  }
+
+  function randomToken() {
+    const bytes = new Uint8Array(32);
+    crypto.getRandomValues(bytes);
+    return Array.from(bytes, value => value.toString(16).padStart(2, "0")).join("");
+  }
+
+  async function sha256Hex(value) {
+    const encoded = new TextEncoder().encode(value);
+    const digest = await crypto.subtle.digest("SHA-256", encoded);
+    return Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, "0")).join("");
   }
 
   class LocalStorageAdapter {
@@ -35,6 +48,31 @@
       this._emit();
     }
 
+    _readOwners() {
+      try {
+        const raw = this.storage.getItem(OWNER_KEY);
+        return raw ? JSON.parse(raw) : {};
+      } catch (error) {
+        throw new StorageError("INVALID_LOCAL_DATA", "Los datos locales están dañados.");
+      }
+    }
+
+    _writeOwners(data) {
+      this.storage.setItem(OWNER_KEY, JSON.stringify(data));
+    }
+
+    _rememberOwner(outfitId, ownerTokenHash) {
+      const owners = this._readOwners();
+      owners[outfitId] = ownerTokenHash;
+      this._writeOwners(owners);
+    }
+
+    _forgetOwner(outfitId) {
+      const owners = this._readOwners();
+      delete owners[outfitId];
+      this._writeOwners(owners);
+    }
+
     _emit() {
       this.list().then(rows => this.listeners.forEach(listener => listener(rows))).catch(() => {});
     }
@@ -46,12 +84,15 @@
     async reserve(outfitId, alias) {
       const data = this._readObject();
       if (data[outfitId]) throw new StorageError("OCCUPIED", "Este atuendo ya está ocupado.");
+      const ownerTokenHash = await sha256Hex(randomToken());
       const reservation = {
         outfit_id: outfitId,
         alias: alias.trim(),
+        owner_token_hash: ownerTokenHash,
         reserved_at: new Date().toISOString()
       };
       data[outfitId] = reservation;
+      this._rememberOwner(outfitId, ownerTokenHash);
       this._writeObject(data);
       return reservation;
     }
@@ -60,9 +101,20 @@
       const data = this._readObject();
       const reservation = data[outfitId];
       if (!reservation) throw new StorageError("NOT_FOUND", "La reserva ya no existe.");
+      if (reservation.owner_token_hash && this._readOwners()[outfitId] !== reservation.owner_token_hash) {
+        throw new StorageError("FORBIDDEN", "Solo el dispositivo que reservó este atuendo puede desocuparlo.");
+      }
       delete data[outfitId];
+      this._forgetOwner(outfitId);
       this._writeObject(data);
       return true;
+    }
+
+    owns(outfitId) {
+      const reservation = this._readObject()[outfitId];
+      if (!reservation) return false;
+      if (!reservation.owner_token_hash) return true;
+      return this._readOwners()[outfitId] === reservation.owner_token_hash;
     }
 
     subscribe(listener) {
@@ -87,6 +139,32 @@
       this.pollIntervalMs = Math.max(2000, Number(config.pollIntervalMs) || 5000);
       this.listeners = new Set();
       this.timer = null;
+      this.storage = window.localStorage;
+    }
+
+    _readOwners() {
+      try {
+        const raw = this.storage.getItem(OWNER_KEY);
+        return raw ? JSON.parse(raw) : {};
+      } catch (error) {
+        throw new StorageError("INVALID_LOCAL_DATA", "Los datos locales están dañados.");
+      }
+    }
+
+    _writeOwners(data) {
+      this.storage.setItem(OWNER_KEY, JSON.stringify(data));
+    }
+
+    _rememberOwner(outfitId, ownerTokenHash) {
+      const owners = this._readOwners();
+      owners[outfitId] = ownerTokenHash;
+      this._writeOwners(owners);
+    }
+
+    _forgetOwner(outfitId) {
+      const owners = this._readOwners();
+      delete owners[outfitId];
+      this._writeOwners(owners);
     }
 
     get headers() {
@@ -120,14 +198,17 @@
     }
 
     async reserve(outfitId, alias) {
+      const ownerTokenHash = await sha256Hex(randomToken());
       try {
         const rows = await this._request("rpc/reserve_outfit", {
           method: "POST",
           body: JSON.stringify({
             p_outfit_id: outfitId,
-            p_alias: alias.trim()
+            p_alias: alias.trim(),
+            p_owner_token_hash: ownerTokenHash
           })
         });
+        this._rememberOwner(outfitId, ownerTokenHash);
         this._emit();
         return {
           outfit_id: outfitId,
@@ -143,15 +224,23 @@
     }
 
     async release(outfitId) {
+      const ownerTokenHash = this._readOwners()[outfitId];
+      if (!ownerTokenHash) throw new StorageError("FORBIDDEN", "Solo el dispositivo que reservó este atuendo puede desocuparlo.");
       const result = await this._request("rpc/release_outfit", {
         method: "POST",
         body: JSON.stringify({
-          p_outfit_id: outfitId
+          p_outfit_id: outfitId,
+          p_owner_token_hash: ownerTokenHash
         })
       });
-      if (result !== true) throw new StorageError("NOT_FOUND", "La reserva ya no existe.");
+      if (result !== true) throw new StorageError("FORBIDDEN", "Solo el dispositivo que reservó este atuendo puede desocuparlo.");
+      this._forgetOwner(outfitId);
       this._emit();
       return true;
+    }
+
+    owns(outfitId) {
+      return Boolean(this._readOwners()[outfitId]);
     }
 
     async _emit() {
@@ -189,6 +278,7 @@
     LocalStorageAdapter,
     SupabaseStorageAdapter,
     StorageError,
-    STORAGE_KEY
+    STORAGE_KEY,
+    OWNER_KEY
   };
 })();

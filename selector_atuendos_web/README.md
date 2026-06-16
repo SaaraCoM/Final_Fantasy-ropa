@@ -69,8 +69,12 @@ mode: "supabase"
 El esquema entregado no concede acceso directo a la tabla. La aplicación usa tres funciones RPC con `security definer`:
 
 - `list_outfit_reservations`: devuelve únicamente estado, alias y fecha.
-- `reserve_outfit`: crea la reserva y deja que la clave primaria bloquee duplicados concurrentes.
-- `release_outfit`: elimina la reserva del atuendo seleccionado.
+- `reserve_outfit`: crea la reserva con un token secreto del dispositivo y deja que la clave primaria bloquee duplicados concurrentes.
+- `release_outfit`: elimina la reserva solo si el dispositivo envía el token correcto.
+
+El token no se muestra al usuario. Se guarda en `localStorage` del navegador que hizo la reserva; si se borra el almacenamiento local o se cambia de dispositivo, esa reserva no podrá desocuparse desde la app.
+
+Al ejecutar el esquema actualizado, las reservas antiguas que no tengan token de propietario se eliminan para evitar atuendos bloqueados sin dueño verificable.
 
 Revisa periódicamente las políticas, los registros y los límites de uso del proyecto antes de publicar.
 
