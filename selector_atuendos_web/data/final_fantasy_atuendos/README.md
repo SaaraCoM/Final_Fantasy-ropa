@@ -17,3 +17,18 @@ Usa `plantilla_importacion.csv` y `tools/importar_imagenes.py` para sustituir ma
 ## Integridad
 
 `manifest.json` contiene solo imágenes oficiales incluidas. `catalogo_atuendos.json` contiene todos los registros, tengan o no imagen incluida.
+
+
+## Actualización de imágenes mediante Google — 2026-06-15
+
+Se localizaron mediante Google y se descargaron desde el sitio oficial de FINAL FANTASY VII REBIRTH 15 renders de cuerpo completo.
+Las imágenes se incluyen para uso no comercial bajo las FINAL FANTASY VII Material Usage Guidelines y mantienen los créditos obligatorios.
+
+- Imágenes oficiales incluidas: 32
+- Registros de atuendo: 847
+- Marcadores pendientes: 815
+- Nuevos personajes añadidos fuera del anexo base: 12
+
+© SQUARE ENIX  
+CHARACTER DESIGN: TETSUYA NOMURA / ROBERTO FERRARI  
+LOGO ILLUSTRATION: © YOSHITAKA AMANO

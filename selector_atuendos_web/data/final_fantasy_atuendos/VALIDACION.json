@@ -1,16 +1,8 @@
 {
-  "fecha": "2026-06-15T17:30:22+02:00",
-  "personajes": 389,
-  "atuendos": 835,
-  "imagenes_oficiales": 17,
-  "marcadores": 818,
+  "total_registros": 847,
+  "personajes_con_varias_versiones_en_subcarpeta": 73,
+  "personajes_con_imagen_unica_en_raiz_genero": 283,
   "ids_duplicados": 0,
-  "archivos_web_faltantes": [],
-  "duplicados_sha256": [],
-  "duplicados_perceptuales": [],
-  "personajes_hombre": 176,
-  "personajes_mujer": 86,
-  "personajes_otro_revision": 127,
-  "qa_navegador": "bloqueada_por_politica_administrativa_del_entorno; validaciones estructurales y sintaxis superadas",
-  "cobertura_personajes": "todos_los_registros_enumerados_en_la_revision_consultada_del_anexo_normalizados_y_deduplicados_por_entrega"
+  "rutas_faltantes_origen": 0,
+  "imagenes_duplicadas_sha256": 0
 }
