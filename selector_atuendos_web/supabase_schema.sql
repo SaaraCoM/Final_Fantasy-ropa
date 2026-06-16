@@ -99,3 +99,6 @@ revoke all on function public.release_outfit(text, text) from public;
 grant execute on function public.list_outfit_reservations() to anon;
 grant execute on function public.reserve_outfit(text, text, text) to anon;
 grant execute on function public.release_outfit(text, text) to anon;
+
+-- Fuerza a PostgREST/Supabase a refrescar la cache de funciones RPC.
+notify pgrst, 'reload schema';
