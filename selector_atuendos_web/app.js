@@ -179,11 +179,8 @@
     image.loading = "lazy";
     image.decoding = "async";
     image.addEventListener("error", function () {
-      if (image.src.endsWith("images/placeholder.svg")) {
-        return;
-      }
-      image.src = "images/placeholder.svg";
-      image.alt = `Imagen pendiente: ${item.personaje}, ${item.atuendo}`;
+      card.remove();
+      updateVisibleResultCount();
     });
     media.append(image);
     if (occupied) {
@@ -212,6 +209,16 @@
     body.append(button);
     card.append(media, body);
     return card;
+  }
+
+  function updateVisibleResultCount() {
+    const visibleItems = els.grid.querySelectorAll(".card").length;
+    els.resultCount.textContent = `${visibleItems} atuendo${visibleItems === 1 ? "" : "s"} mostrado${visibleItems === 1 ? "" : "s"}`;
+    const empty = visibleItems === 0;
+    els.emptyState.hidden = !empty;
+    if (empty) {
+      els.emptyMessage.textContent = "No existen registros con imagen disponible que coincidan con los filtros actuales.";
+    }
   }
 
   function openReserve(id) {
