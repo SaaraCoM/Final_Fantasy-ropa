@@ -178,7 +178,13 @@
     image.alt = `${item.personaje}, ${item.atuendo}`;
     image.loading = "lazy";
     image.decoding = "async";
-    image.addEventListener("error", () => { image.alt = `Imagen no disponible: ${item.personaje}, ${item.atuendo}`; });
+    image.addEventListener("error", function () {
+      if (image.src.endsWith("images/placeholder.svg")) {
+        return;
+      }
+      image.src = "images/placeholder.svg";
+      image.alt = `Imagen pendiente: ${item.personaje}, ${item.atuendo}`;
+    });
     media.append(image);
     if (occupied) {
       const overlay = document.createElement("div");
