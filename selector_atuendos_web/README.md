@@ -58,29 +58,21 @@ Las reservas se almacenan en `localStorage`. **Solo se comparten entre pestañas
 3. En `config.js`, cambia:
 
 ```js
-window.APP_CONFIG = {
-  mode: "supabase",
-  supabase: {
-    url: "https://TU_PROYECTO.supabase.co",
-    anonKey: "TU_CLAVE_ANON_PUBLICA",
-    table: "outfit_reservations",
-    pollIntervalMs: 5000
-  }
-};
+mode: "supabase"
 ```
 
 4. Usa únicamente la clave `anon` pública. Nunca introduzcas la `service_role` en una web estática.
 5. Publica la carpeta en Vercel, Netlify, GitHub Pages o cualquier servidor estático.
 
-### Seguridad de liberación
+### Seguridad de reservas
 
 El esquema entregado no concede acceso directo a la tabla. La aplicación usa tres funciones RPC con `security definer`:
 
 - `list_outfit_reservations`: devuelve únicamente estado, alias y fecha.
 - `reserve_outfit`: crea la reserva y deja que la clave primaria bloquee duplicados concurrentes.
-- `release_outfit`: elimina solo cuando el código coincide.
+- `release_outfit`: elimina la reserva del atuendo seleccionado.
 
-La clave `release_code` no aparece en las lecturas públicas. Revisa periódicamente las políticas, los registros y los límites de uso del proyecto antes de publicar.
+Revisa periódicamente las políticas, los registros y los límites de uso del proyecto antes de publicar.
 
 ## Arquitectura
 

@@ -16,7 +16,7 @@
     <div>
       <p class="eyebrow">Archivo de cristales</p>
       <h1>Selector de atuendos</h1>
-      <p class="hero__copy">Consulta la galería, reserva un atuendo disponible y conserva el código para liberarlo.</p>
+      <p class="hero__copy">Consulta la galería, reserva un atuendo disponible y desocúpalo cuando quieras.</p>
     </div>
     <div id="storageBadge" class="mode-badge" role="status">Modo local</div>
   </header>
@@ -89,32 +89,14 @@
     <form id="releaseForm" method="dialog">
       <button class="dialog__close" type="button" data-close-dialog aria-label="Cerrar">×</button>
       <p class="eyebrow">Liberar selección</p>
-      <h2 id="releaseTitle">Código de liberación</h2>
-      <p>Introduce el código entregado al reservar.</p>
-      <label class="field">
-        <span>Código</span>
-        <input id="releaseCodeInput" maxlength="24" required autocapitalize="characters" autocomplete="off">
-      </label>
+      <h2 id="releaseTitle">Desocupar atuendo</h2>
+      <p>Confirma que quieres dejar este atuendo disponible otra vez.</p>
       <p id="releaseError" class="form-error" role="alert"></p>
       <div class="dialog__actions">
         <button class="button button--ghost" type="button" data-close-dialog>Cancelar</button>
-        <button class="button button--danger" type="submit">Liberar atuendo</button>
+        <button class="button button--danger" type="submit">Desocupar</button>
       </div>
     </form>
-  </dialog>
-
-  <dialog id="successDialog" class="dialog dialog--success">
-    <div>
-      <button class="dialog__close" type="button" data-close-dialog aria-label="Cerrar">×</button>
-      <p class="eyebrow">Reserva confirmada</p>
-      <h2>Guarda este código</h2>
-      <p>Será necesario para liberar el atuendo.</p>
-      <output id="releaseCodeOutput" class="release-code"></output>
-      <div class="dialog__actions">
-        <button id="copyCodeButton" class="button button--ghost" type="button">Copiar código</button>
-        <button class="button" type="button" data-close-dialog>Entendido</button>
-      </div>
-    </div>
   </dialog>
 
   <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>

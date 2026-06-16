@@ -37,11 +37,7 @@
       reserveError: $("#reserveError"),
       releaseDialog: $("#releaseDialog"),
       releaseForm: $("#releaseForm"),
-      releaseCodeInput: $("#releaseCodeInput"),
       releaseError: $("#releaseError"),
-      successDialog: $("#successDialog"),
-      releaseCodeOutput: $("#releaseCodeOutput"),
-      copyCodeButton: $("#copyCodeButton"),
       toast: $("#toast")
     });
 
@@ -104,7 +100,6 @@
     els.refreshButton.addEventListener("click", refreshReservations);
     els.reserveForm.addEventListener("submit", submitReservation);
     els.releaseForm.addEventListener("submit", submitRelease);
-    els.copyCodeButton.addEventListener("click", copyReleaseCode);
     document.querySelectorAll("[data-close-dialog]").forEach(button => button.addEventListener("click", () => button.closest("dialog").close()));
   }
 
@@ -204,7 +199,7 @@
     const button = document.createElement("button");
     button.type = "button";
     button.className = occupied ? "button button--ghost" : "button";
-    button.textContent = occupied ? "Liberar con código" : "Seleccionar";
+    button.textContent = occupied ? "Desocupar" : "Seleccionar";
     button.addEventListener("click", () => occupied ? openRelease(item.id) : openReserve(item.id));
     body.append(button);
     card.append(media, body);
@@ -243,9 +238,8 @@
       const reservation = await state.adapter.reserve(state.selectedId, alias);
       state.reservations.set(reservation.outfit_id, reservation);
       els.reserveDialog.close();
-      els.releaseCodeOutput.textContent = reservation.release_code;
-      els.successDialog.showModal();
       render();
+      showToast("Reserva confirmada.");
     } catch (error) {
       els.reserveError.textContent = error.message;
       await refreshReservations();
@@ -256,20 +250,16 @@
 
   function openRelease(id) {
     state.selectedId = id;
-    els.releaseCodeInput.value = "";
     els.releaseError.textContent = "";
     els.releaseDialog.showModal();
-    requestAnimationFrame(() => els.releaseCodeInput.focus());
   }
 
   async function submitRelease(event) {
     event.preventDefault();
-    const code = els.releaseCodeInput.value.trim();
-    if (!code) { els.releaseError.textContent = "Introduce el código."; return; }
     const button = els.releaseForm.querySelector('[type="submit"]');
     button.disabled = true;
     try {
-      await state.adapter.release(state.selectedId, code);
+      await state.adapter.release(state.selectedId);
       state.reservations.delete(state.selectedId);
       els.releaseDialog.close();
       render();
@@ -278,15 +268,6 @@
       els.releaseError.textContent = error.message;
     } finally {
       button.disabled = false;
-    }
-  }
-
-  async function copyReleaseCode() {
-    try {
-      await navigator.clipboard.writeText(els.releaseCodeOutput.textContent);
-      showToast("Código copiado.");
-    } catch (_) {
-      showToast("Selecciona y copia el código manualmente.");
     }
   }
 

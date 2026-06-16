@@ -11,13 +11,6 @@
     }
   }
 
-  function randomCode() {
-    const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-    const bytes = new Uint8Array(10);
-    crypto.getRandomValues(bytes);
-    return Array.from(bytes, value => alphabet[value % alphabet.length]).join("");
-  }
-
   class LocalStorageAdapter {
     constructor(storage = window.localStorage) {
       this.storage = storage;
@@ -56,7 +49,6 @@
       const reservation = {
         outfit_id: outfitId,
         alias: alias.trim(),
-        release_code: randomCode(),
         reserved_at: new Date().toISOString()
       };
       data[outfitId] = reservation;
@@ -64,13 +56,10 @@
       return reservation;
     }
 
-    async release(outfitId, code) {
+    async release(outfitId) {
       const data = this._readObject();
       const reservation = data[outfitId];
       if (!reservation) throw new StorageError("NOT_FOUND", "La reserva ya no existe.");
-      if (reservation.release_code.toUpperCase() !== code.trim().toUpperCase()) {
-        throw new StorageError("INVALID_CODE", "El código de liberación no es correcto.");
-      }
       delete data[outfitId];
       this._writeObject(data);
       return true;
@@ -131,21 +120,18 @@
     }
 
     async reserve(outfitId, alias) {
-      const releaseCode = randomCode();
       try {
         const rows = await this._request("rpc/reserve_outfit", {
           method: "POST",
           body: JSON.stringify({
             p_outfit_id: outfitId,
-            p_alias: alias.trim(),
-            p_release_code: releaseCode
+            p_alias: alias.trim()
           })
         });
         this._emit();
         return {
           outfit_id: outfitId,
           alias: alias.trim(),
-          release_code: rows?.[0]?.release_code || releaseCode,
           reserved_at: rows?.[0]?.reserved_at || new Date().toISOString()
         };
       } catch (error) {
@@ -156,15 +142,14 @@
       }
     }
 
-    async release(outfitId, code) {
+    async release(outfitId) {
       const result = await this._request("rpc/release_outfit", {
         method: "POST",
         body: JSON.stringify({
-          p_outfit_id: outfitId,
-          p_release_code: code.trim().toUpperCase()
+          p_outfit_id: outfitId
         })
       });
-      if (result !== true) throw new StorageError("INVALID_CODE", "El código de liberación no es correcto.");
+      if (result !== true) throw new StorageError("NOT_FOUND", "La reserva ya no existe.");
       this._emit();
       return true;
     }
