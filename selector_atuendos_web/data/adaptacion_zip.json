@@ -1,10 +1,11 @@
 {
-  "zip": "C:\\Users\\Sara\\Downloads\\final_fantasy_atuendos (3).zip",
-  "registros_origen": 847,
-  "tarjetas_generadas": 197,
-  "imagenes_unicas": 197,
-  "rutas_corregidas_por_extension": 72,
-  "registros_sin_imagen_en_zip": 645,
-  "tarjetas_duplicadas_por_foto_eliminadas": 5,
-  "imagenes_copiadas": 317
+    "zip":  "C:\\Users\\Sara\\Downloads\\final_fantasy_atuendos (3).zip",
+    "registros_origen":  847,
+    "tarjetas_generadas":  248,
+    "imagenes_unicas":  248,
+    "rutas_corregidas_por_extension":  72,
+    "registros_sin_imagen_en_zip":  645,
+    "tarjetas_duplicadas_por_foto_eliminadas":  5,
+    "imagenes_copiadas":  317,
+    "tarjetas_recuperadas_por_nombre":  51
 }
